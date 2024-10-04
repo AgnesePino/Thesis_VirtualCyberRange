@@ -17,16 +17,18 @@ def run_command(command, check=True, use_sudo=False):
         if e.stderr:
             print(f"Error Output: {e.stderr.decode().strip()}")
 
+# Funzione per creare il contenuto dello script di configurazione della rete per una VM
 def create_config_sh(ip_address, team=None):
-	return f"""#!/bin/bash
-	# Configurazione specifica per vulnbox del team {team}
-	ip addr add {ip_address} dev enp5s0
-	ip route add {ip_address.replace('.1', '.2')} dev enp5s0
-	ip route add default via {ip_address.replace('.1', '.2')}
+    return f"""#!/bin/bash
+    # Configurazione specifica per vulnbox del team {team}
+    ip addr add {ip_address} dev enp5s0
+    ip route add {ip_address.replace('.1', '.2')} dev enp5s0
+    ip route add default via {ip_address.replace('.1', '.2')}
     # Configurazione DNS
     echo -e "[Resolve]\\nDNS=8.8.8.8\\n" > /etc/systemd/resolved.conf
     systemctl restart systemd-resolved
-	"""
+    """
+
 # Funzione per copiare ed eseguire il file config.sh nella VM
 def copy_and_run_config_sh(vm_name, config_content):
     config_filename = "config.sh"
@@ -47,6 +49,7 @@ def copy_and_run_config_sh(vm_name, config_content):
     command = f"incus exec {vm_name} -- /root/{config_filename}"
     run_command(command, use_sudo=True)
 
+# Funzione per verificare se una VM esiste
 def vm_exists(vm_name):
     result = subprocess.run(f"incus list | grep {vm_name}", shell=True, stdout=subprocess.PIPE)
     return result.returncode == 0
@@ -81,8 +84,6 @@ def setup_vm(vm_name, vm_ip):
     
     print(f"Macchina {vm_name} con IP {vm_ip} configurata con successo!")
 
-
-
 # Funzione che preleva l'ip locale e l'interfaccia
 def get_ip_and_interface():
     interfaces = psutil.net_if_addrs()  # Ottiene tutte le interfacce e i loro indirizzi
@@ -94,19 +95,13 @@ def get_ip_and_interface():
                     return interface_name, ip_address
     return None, None
 
-
-
 # Funzione per generare un IP per le VM
 def generate_vm_ip(team):
     return f"10.60.{team}.1"
 
-
-
 # Funzione per generare un IP per i player di ogni team
 def generate_team_ip(team, player):
     return f"10.80.{team}.{player+1}"
-
-
 
 # Funzione per generare chiavi WireGuard (Private/Public)
 def generate_wireguard_keys():
@@ -122,8 +117,6 @@ ListenPort = {listen_port}
 PrivateKey = {private_key_server}
 """
 
-
-
 # Funzione per creare la configurazione del peer (client) nel file server
 def create_peer_config(public_key_client, ip_address):
     return f"""[Peer]
@@ -131,10 +124,8 @@ PublicKey = {public_key_client}
 AllowedIPs = {ip_address}/32
 """
 
-
-
 # Funzione per creare la configurazione individuale di ogni client (giocatore)
-def create_client_config(private_key_client, public_key_server, client_ip, server_ip, listen_port,vm_ip):
+def create_client_config(private_key_client, public_key_server, client_ip, server_ip, listen_port, vm_ip):
     return f"""[Interface]
 PrivateKey = {private_key_client}
 Address = {client_ip}/32
@@ -146,8 +137,7 @@ AllowedIPs = {vm_ip}/16, 10.10.0.1/32
 PersistentKeepalive = 21
 """
 
-
-
+# Funzione per configurare WireGuard per un team specifico
 def setup_wireguard_for_team(team, server_ip, players_per_team, listen_port_base, vm_ip):
     num = 0  # Puoi incrementare questo numero in base al numero di team configurati
     listen_port = listen_port_base + num
@@ -193,9 +183,6 @@ def setup_wireguard_for_team(team, server_ip, players_per_team, listen_port_base
     num += 1  # Incrementa il numero per differenziare le porte
     print(f"Configurazione server WireGuard generata per team {team}: {server_filename}")
 
-
-
-
 # Funzione principale per gestire sia le macchine virtuali che la configurazione di WireGuard
 def setup_infrastructure(num_teams, players_per_team):
     interface_name, server_ip = get_ip_and_interface()
@@ -208,7 +195,7 @@ def setup_infrastructure(num_teams, players_per_team):
     os.makedirs("server_configs", exist_ok=True)
     os.makedirs("client_configs", exist_ok=True)
 
-    # Step 4: Creazione dello script per configurare le interfacce TAP
+    # Creazione dello script per configurare le interfacce TAP
     tap_script_content = "#!/bin/bash\nsudo iptables -t nat -A POSTROUTING -o wlo1 -j MASQUERADE\n"
     for team in range(1, num_teams + 1):
         vm_ip = generate_vm_ip(team)
@@ -244,6 +231,8 @@ if __name__ == "__main__":
     players_per_team = int(input("Inserisci il numero di giocatori per team: "))
 
     setup_infrastructure(num_teams, players_per_team)
+
+
 
 
 
