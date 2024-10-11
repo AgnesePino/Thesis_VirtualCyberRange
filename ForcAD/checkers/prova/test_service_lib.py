@@ -14,7 +14,6 @@ class CheckMachine:
         self.checker.check_response(r, 'Check failed')
         
     def put_flag(self, flag, vuln):
-        ###
         note_data={}
         note_data['title']= rnd_string(4)
         note_data['content']=flag
