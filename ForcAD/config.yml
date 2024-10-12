@@ -1,0 +1,45 @@
+admin:
+  password: a6abca2b862b75cf
+  username: forcad
+game:
+  checkers_path: ''
+  default_score: 2500.0
+  env_path: ''
+  flag_lifetime: 5
+  game_hardness: 10.0
+  inflation: true
+  mode: classic
+  round_time: 20
+  start_time: 2019-11-30 15:30:00
+  timezone: Europe/Moscow
+  volga_attacks_mode: false
+storages:
+  db:
+    dbname: forcad
+    host: postgres
+    password: a6abca2b862b75cf
+    port: 5432
+    user: forcad
+  rabbitmq:
+    host: rabbitmq
+    password: a6abca2b862b75cf
+    port: 5672
+    user: forcad
+    vhost: forcad
+  redis:
+    db: 0
+    host: redis
+    password: a6abca2b862b75cf
+    port: 6379
+tasks:
+- checker: /checkers/prova/checker.py
+  checker_timeout: 10
+  checker_type: hackerdom
+  gets: 2
+  name: Notes
+  places: 5
+  puts: 2
+teams:
+- highlighted: true
+  ip: 192.168.91.137
+  name: prova
